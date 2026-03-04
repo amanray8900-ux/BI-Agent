@@ -44,7 +44,7 @@ def get_board_items(board_id):
       boards(ids: [$boardId]) {
         name
         columns { id title type }
-        items_page(limit: 400) {
+        items_page(limit: 100) {
           items {
             id name
             column_values { id text column { title } }
