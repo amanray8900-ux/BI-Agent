@@ -218,8 +218,8 @@ When analyzing data:
             })
 
 # ── Streamlit UI ────────────────────────────────────────────
-st.set_page_config(page_title="Monday.com BI Agent", layout="wide")
-st.title("📊 Monday.com Business Intelligence Agent")
+st.set_page_config(page_title="BI Agent", layout="wide")
+st.title("📊  Business Intelligence Agent")
 st.markdown("""
 **Example questions you can ask:**
 - How is our pipeline looking this quarter?
