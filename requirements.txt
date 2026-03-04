@@ -1,4 +1,4 @@
 streamlit
 requests
-groq
+cerebras-cloud-sdk
 python-dotenv
