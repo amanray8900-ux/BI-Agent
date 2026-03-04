@@ -74,7 +74,10 @@ def get_board_items(board_id):
 
                 # convert 10k → 10000
                 if value.lower().endswith("k"):
-                    value = float(value[:-1]) * 1000
+                    try:
+                        value = float(value[:-1]) * 1000
+                    except:
+                        value = value
 
             record[col_name] = value if value else None
         records.append(record)
