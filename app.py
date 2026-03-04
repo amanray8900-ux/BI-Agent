@@ -4,16 +4,16 @@ import json
 import os
 import time
 from dotenv import load_dotenv
-from groq import Groq
+from cerebras.cloud.sdk import Cerebras
 
 load_dotenv("apis.env")
 
 try:
     MONDAY_API_TOKEN = st.secrets["MONDAY_API_TOKEN"]
-    GROQ_API_KEY = st.secrets["GROQ_API_KEY"]
+    CEREBRAS_API_KEY = st.secrets["CEREBRAS_API_KEY"]
 except:
     MONDAY_API_TOKEN = os.getenv("MONDAY_API_TOKEN")
-    GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+    CEREBRAS_API_KEY = os.getenv("CEREBRAS_API_KEY")
 
 # ── Monday.com API ──────────────────────────────────────────
 def monday_query(graphql_query, variables={}):
@@ -128,9 +128,9 @@ def execute_tool(tool_name, tool_input):
         result = get_board_items(board["id"])
         return json.dumps(result)
 
-# ── Groq Agent ──────────────────────────────────────────────
+# ── Cerebras Agent ──────────────────────────────────────────
 def run_agent(user_message, chat_history, action_log):
-    client = Groq(api_key=GROQ_API_KEY)
+    client = Cerebras(api_key=CEREBRAS_API_KEY)
 
     system_prompt = """
 You are a Business Intelligence assistant for company leadership.
@@ -154,11 +154,10 @@ When analyzing data:
     action_log.append("🧠 Understanding the business question")
 
     while True:
-        # Retry logic for rate limits
         for attempt in range(3):
             try:
                 response = client.chat.completions.create(
-                    model="llama-3.3-70b-versatile",
+                    model="gpt-oss-120b",
                     messages=messages,
                     tools=TOOLS,
                     tool_choice="auto",
@@ -167,8 +166,8 @@ When analyzing data:
                 break
             except Exception as e:
                 if attempt < 2:
-                    action_log.append(f"⏳ Rate limit hit, retrying in 15 seconds...")
-                    time.sleep(15)
+                    action_log.append(f"⏳ Retrying in 10 seconds...")
+                    time.sleep(10)
                 else:
                     raise e
 
