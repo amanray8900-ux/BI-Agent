@@ -7,8 +7,12 @@ from groq import Groq
 
 load_dotenv("apis.env")
 
-MONDAY_API_TOKEN = os.getenv("MONDAY_API_TOKEN") or st.secrets.get("MONDAY_API_TOKEN")
-GROQ_API_KEY = os.getenv("GROQ_API_KEY") or st.secrets.get("GROQ_API_KEY")
+try:
+    MONDAY_API_TOKEN = st.secrets["MONDAY_API_TOKEN"]
+    GROQ_API_KEY = st.secrets["GROQ_API_KEY"]
+except:
+    MONDAY_API_TOKEN = os.getenv("MONDAY_API_TOKEN")
+    GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
 # ── Monday.com API ──────────────────────────────────────────
 def monday_query(graphql_query, variables={}):
