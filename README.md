@@ -38,7 +38,7 @@ Monday.com GraphQL API (Live, per query)
 |------|---------|
 | `app.py` | Main Streamlit app — UI, agent loop, Monday.com API calls |
 | `requirements.txt` | Python dependencies |
-| `apis.env` | Local environment variables (not committed to GitHub) |
+| `apis.env` | API keys |
 
 ---
 
