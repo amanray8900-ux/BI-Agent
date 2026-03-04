@@ -2,7 +2,6 @@
 DECISION LOG — Monday.com Business Intelligence Agent
 ================================================================
 Author: Aman Ray
-Date: March 2026
 ================================================================
 
 
