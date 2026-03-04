@@ -2,8 +2,8 @@
 
 A conversational AI agent that answers founder-level business intelligence queries by connecting live to Monday.com boards containing Work Orders and Deals data.
 
-🔗 **Live App:** [your-app-link.streamlit.app](https://your-app-link.streamlit.app)
-🔗 **Monday.com Board:** [your-monday-board-link](https://your-monday-board-link)
+🔗 **Live App:** [https://bi-agent-8zuqtcut9yudp5atwnudvz.streamlit.app](https://your-app-link.streamlit.app)
+🔗 **Monday.com Board:** [https://amanray8900s-team.monday.com](https://your-monday-board-link)
 
 ---
 
