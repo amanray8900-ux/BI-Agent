@@ -2,6 +2,7 @@ import streamlit as st
 import requests
 import json
 import os
+import time
 from dotenv import load_dotenv
 from groq import Groq
 
@@ -27,11 +28,8 @@ def monday_query(graphql_query, variables={}):
             json={"query": graphql_query, "variables": variables},
             timeout=15
         )
-
         response.raise_for_status()
-
         return response.json()
-
     except Exception as e:
         return {"error": str(e)}
 
@@ -65,20 +63,14 @@ def get_board_items(board_id):
         for cv in item.get("column_values", []):
             col_name = cv["column"]["title"].lower().replace(" ", "_")
             value = cv["text"]
-
             if value:
                 value = value.strip()
-
-                # remove $ and commas
                 value = value.replace("$", "").replace(",", "")
-
-                # convert 10k → 10000
                 if value.lower().endswith("k"):
                     try:
                         value = float(value[:-1]) * 1000
                     except:
-                        value = value
-
+                        pass
             record[col_name] = value if value else None
         records.append(record)
 
@@ -129,7 +121,7 @@ def execute_tool(tool_name, tool_input):
 
         if not board:
             return json.dumps({
-                "error": f"Board not found",
+                "error": "Board not found",
                 "available": [b['name'] for b in boards]
             })
 
@@ -153,41 +145,42 @@ When analyzing data:
 2. Identify trends or patterns
 3. Highlight risks or missing data
 4. Provide actionable insights
-
-Examples of good responses:
-- pipeline value
-- sector performance
-- stalled deals
-- operational bottlenecks
 """
-
 
     messages = [{"role": "system", "content": system_prompt}]
     messages += chat_history
     messages.append({"role": "user", "content": user_message})
 
-    # Agentic loop
     action_log.append("🧠 Understanding the business question")
+
     while True:
-        response = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
-            messages=messages,
-            tools=TOOLS,
-            tool_choice="auto",
-            max_tokens=4096
-        )
+        # Retry logic for rate limits
+        for attempt in range(3):
+            try:
+                response = client.chat.completions.create(
+                    model="llama-3.3-70b-versatile",
+                    messages=messages,
+                    tools=TOOLS,
+                    tool_choice="auto",
+                    max_tokens=4096
+                )
+                break
+            except Exception as e:
+                if attempt < 2:
+                    action_log.append(f"⏳ Rate limit hit, retrying in 15 seconds...")
+                    time.sleep(15)
+                else:
+                    raise e
 
         msg = response.choices[0].message
         tool_calls = msg.tool_calls
 
         if not tool_calls:
-            # Final answer
             final_text = msg.content
             chat_history.append({"role": "user", "content": user_message})
             chat_history.append({"role": "assistant", "content": final_text})
             return final_text, chat_history
 
-        # Add assistant message with tool calls
         messages.append({
             "role": "assistant",
             "content": msg.content or "",
@@ -203,19 +196,18 @@ Examples of good responses:
             ]
         })
 
-        # Execute each tool
         for tc in tool_calls:
             tool_name = tc.function.name
             tool_input = json.loads(tc.function.arguments)
-            action_log.append("📡 Fetching live data from monday.com")
 
+            action_log.append(f"📡 Fetching live data from monday.com")
             action_log.append(f"🔧 Calling: **{tool_name}** with `{tool_input}`")
 
             result = execute_tool(tool_name, tool_input)
             result_data = json.loads(result)
 
             if "total" in result_data:
-                action_log.append("📊 Analyzing business data")
+                action_log.append(f"📊 Analyzing business data")
                 action_log.append(f"📦 Got **{result_data['total']} items** from **{result_data['board_name']}**")
             elif isinstance(result_data, list):
                 action_log.append(f"📋 Found **{len(result_data)} boards**")
@@ -230,13 +222,13 @@ Examples of good responses:
 st.set_page_config(page_title="Monday.com BI Agent", layout="wide")
 st.title("📊 Monday.com Business Intelligence Agent")
 st.markdown("""
-Example questions you can ask:
-
-• How is our pipeline looking this quarter?
-• Show top deals by value
-• Which sector has the most revenue?
-• Are there delayed work orders?
+**Example questions you can ask:**
+- How is our pipeline looking this quarter?
+- Show top deals by value
+- Which sector has the most revenue?
+- Are there any delayed work orders?
 """)
+
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 if "messages_display" not in st.session_state:
